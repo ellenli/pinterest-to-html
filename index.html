@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinterest Board Tagger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .setup-section {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .setup-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            color: #555;
+            min-width: 120px;
+        }
+
+        .input-group input, .input-group select {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .stats {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .gallery {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .image-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+            background: white;
+            position: relative;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .image-card.tagged {
+            border-color: #4CAF50;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
+        }
+
+        .image-wrapper {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .image-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .image-card:hover .image-overlay {
+            opacity: 1;
+        }
+
+        .quick-tag-btn {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            margin: 0 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .quick-tag-btn:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        .tag-controls {
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .tag-checkboxes {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+        }
+
+        .checkbox-group label {
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .tag-display {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .tag {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .tag.vibes { background: #ff6b6b; }
+        .tag.words { background: #4ecdc4; }
+        .tag.memes { background: #ffe66d; color: #333; }
+
+        .output-section {
+            padding: 30px;
+            border-top: 1px solid #eee;
+            background: #f8f9fa;
+        }
+
+        .output-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .code-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: #4CAF50;
+            margin-top: 15px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .input-group label {
+                min-width: auto;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 15px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Pinterest Board Tagger</h1>
+            <p>Quickly organize your Pinterest images and generate HTML for your mood board</p>
+        </div>
+
+        <div class="setup-section">
+            <h2>Setup</h2>
+            <div class="input-group">
+                <label>Pinterest Board URL:</label>
+                <input type="text" id="boardUrl" placeholder="https://pinterest.com/username/board-name/" />
+                <button class="btn" onclick="loadSampleImages()">Load Sample Images</button>
+            </div>
+            <div class="input-group">
+                <label>Download Method:</label>
+                <select id="downloadMethod">
+                    <option value="demo">Demo Mode (Sample Images)</option>
+                    <option value="manual">Manual Upload</option>
+                    <option value="api">Pinterest API (Coming Soon)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Upload Images:</label>
+                <input type="file" id="fileUpload" multiple accept="image/*" />
+                <button class="btn" onclick="processUploadedFiles()">Process Images</button>
+            </div>
+        </div>
+
+        <div class="controls hidden" id="controls">
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterImages('all')">All</button>
+                <button class="filter-btn" onclick="filterImages('tagged')">Tagged</button>
+                <button class="filter-btn" onclick="filterImages('untagged')">Untagged</button>
+                <button class="filter-btn" onclick="filterImages('vibes')">Vibes</button>
+                <button class="filter-btn" onclick="filterImages('words')">Words</button>
+                <button class="filter-btn" onclick="filterImages('memes')">Memes</button>
+            </div>
+            <div class="stats" id="stats">
+                Total: 0 | Tagged: 0 | Untagged: 0
+            </div>
+        </div>
+
+        <div class="loading hidden" id="loading">
+            <div class="spinner"></div>
+            <p>Loading images...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="gallery hidden" id="gallery"></div>
+
+        <div class="output-section hidden" id="outputSection">
+            <h3>Generated HTML for mood.html</h3>
+            <div class="code-output" id="codeOutput"></div>
+            <button class="btn copy-btn" onclick="copyToClipboard()">Copy HTML</button>
+            <button class="btn" onclick="downloadHTML()" style="margin-left: 10px;">Download HTML File</button>
+        </div>
+    </div>
+
+    <script>
+        let images = [];
+        let currentFilter = 'all';
+
+        // Sample images for demo
+        const sampleImages = [
+            { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400', name: 'beach-sunset.jpg', tags: [] },
+            { url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400', name: 'ocean-waves.jpg', tags: [] },
+            { url: 'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=400', name: 'lighthouse.jpg', tags: [] },
+            { url: 'https://images.unsplash.com/photo-1502780402662-acc01917091e?w=400', name: 'sailing-boat.jpg', tags: [] },
+            { url: 'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=400', name: 'lake-mountains.jpg', tags: [] },
+            { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400', name: 'golden-hour.jpg', tags: [] },
+        ];
+
+        function loadSampleImages() {
+            document.getElementById('loading').classList.remove('hidden');
+            images = [...sampleImages];
+            
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('controls').classList.remove('hidden');
+                document.getElementById('gallery').classList.remove('hidden');
+                document.getElementById('outputSection').classList.remove('hidden');
+                renderGallery();
+                updateStats();
+            }, 1500);
+        }
+
+        function processUploadedFiles() {
+            const fileInput = document.getElementById('fileUpload');
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                alert('Please select some images first!');
+                return;
+            }
+
+            document.getElementById('loading').classList.remove('hidden');
+            images = [];
+
+            let loadedCount = 0;
+            const totalFiles = files.length;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    images.push({
+                        url: e.target.result,
+                        name: file.name,
+                        tags: []
+                    });
+                    
+                    loadedCount++;
+                    const progress = (loadedCount / totalFiles) * 100;
+                    document.getElementById('progressFill').style.width = progress + '%';
+                    
+                    if (loadedCount === totalFiles) {
+                        setTimeout(() => {
+                            document.getElementById('loading').classList.add('hidden');
+                            document.getElementById('controls').classList.remove('hidden');
+                            document.getElementById('gallery').classList.remove('hidden');
+                            document.getElementById('outputSection').classList.remove('hidden');
+                            renderGallery();
+                            updateStats();
+                        }, 500);
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function renderGallery() {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+
+            const filteredImages = getFilteredImages();
+
+            filteredImages.forEach((image, index) => {
+                const imageCard = document.createElement('div');
+                imageCard.className = `image-card ${image.tags.length > 0 ? 'tagged' : ''}`;
+                imageCard.innerHTML = `
+                    <div class="image-wrapper">
+                        <img src="${image.url}" alt="${image.name}" />
+                        <div class="image-overlay">
+                            <button class="quick-tag-btn" onclick="quickTag(${images.indexOf(image)}, 'vibes')">+ Vibes</button>
+                            <button class="quick-tag-btn" onclick="quickTag(${images.indexOf(image)}, 'words')">+ Words</button>
+                            <button class="quick-tag-btn" onclick="quickTag(${images.indexOf(image)}, 'memes')">+ Memes</button>
+                        </div>
+                    </div>
+                    <div class="tag-controls">
+                        <div class="tag-checkboxes">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="vibes-${images.indexOf(image)}" ${image.tags.includes('vibes') ? 'checked' : ''} onchange="toggleTag(${images.indexOf(image)}, 'vibes')">
+                                <label for="vibes-${images.indexOf(image)}">Vibes</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="words-${images.indexOf(image)}" ${image.tags.includes('words') ? 'checked' : ''} onchange="toggleTag(${images.indexOf(image)}, 'words')">
+                                <label for="words-${images.indexOf(image)}">Words</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="memes-${images.indexOf(image)}" ${image.tags.includes('memes') ? 'checked' : ''} onchange="toggleTag(${images.indexOf(image)}, 'memes')">
+                                <label for="memes-${images.indexOf(image)}">Memes</label>
+                            </div>
+                        </div>
+                        <div class="tag-display">
+                            ${image.tags.map(tag => `<span class="tag ${tag}">${tag}</span>`).join('')}
+                        </div>
+                        <div style="margin-top: 8px; font-size: 12px; color: #666;">${image.name}</div>
+                    </div>
+                `;
+                gallery.appendChild(imageCard);
+            });
+
+            generateHTML();
+        }
+
+        function getFilteredImages() {
+            switch (currentFilter) {
+                case 'all':
+                    return images;
+                case 'tagged':
+                    return images.filter(img => img.tags.length > 0);
+                case 'untagged':
+                    return images.filter(img => img.tags.length === 0);
+                case 'vibes':
+                    return images.filter(img => img.tags.includes('vibes'));
+                case 'words':
+                    return images.filter(img => img.tags.includes('words'));
+                case 'memes':
+                    return images.filter(img => img.tags.includes('memes'));
+                default:
+                    return images;
+            }
+        }
+
+        function filterImages(filter) {
+            currentFilter = filter;
+            
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            renderGallery();
+        }
+
+        function quickTag(index, tag) {
+            toggleTag(index, tag);
+        }
+
+        function toggleTag(index, tag) {
+            const image = images[index];
+            const tagIndex = image.tags.indexOf(tag);
+            
+            if (tagIndex > -1) {
+                image.tags.splice(tagIndex, 1);
+            } else {
+                image.tags.push(tag);
+            }
+            
+            renderGallery();
+            updateStats();
+        }
+
+        function updateStats() {
+            const total = images.length;
+            const tagged = images.filter(img => img.tags.length > 0).length;
+            const untagged = total - tagged;
+            
+            document.getElementById('stats').textContent = `Total: ${total} | Tagged: ${tagged} | Untagged: ${untagged}`;
+        }
+
+        function generateHTML() {
+            const htmlParts = images.map(image => {
+                if (image.tags.length === 0) return '';
+                
+                const classNames = image.tags.join(' ');
+                const imageName = image.name.split('.')[0];
+                
+                return `\t\t<article class="${classNames}">
+\t\t\t<img src="images/${image.name}" class="img-responsive" alt="${imageName}" />
+\t\t</article>`;
+            }).filter(html => html !== '');
+
+            const fullHTML = htmlParts.join('\n');
+            document.getElementById('codeOutput').textContent = fullHTML;
+        }
+
+        function copyToClipboard() {
+            const codeOutput = document.getElementById('codeOutput');
+            const text = codeOutput.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = '#4CAF50';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+
+        function downloadHTML() {
+            const htmlContent = document.getElementById('codeOutput').textContent;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mood-board-articles.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Pinterest Board Tagger initialized');
+        });
+    </script>
+</body>
+</html>
