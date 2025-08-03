@@ -1,5 +1,8 @@
 # pinterest-to-html
 ---
-1. Export/download pins using this script [pinterest-downloader](https://github.com/limkokhole/pinterest-downloader)
-2. Upload the images to [ellenli.github.io/pinterest-to-html](https://ellenli.github.io/pinterest-to-html/)
-3. Get HTML to use for `mood.html` (built based on [Responsive Portfolio Gallery](https://codepen.io/j1f/pen/qdzwLg))
+This is an HTML generation tool I built for personal use on my [public moodboard](https://ellen.li/mood).
+
+### How to use
+1. Export/download pins using [pinterest-downloader](https://github.com/limkokhole/pinterest-downloader)
+2. Process the images via [pinterest-to-html](https://ellenli.github.io/pinterest-to-html/)
+3. Get HTML
